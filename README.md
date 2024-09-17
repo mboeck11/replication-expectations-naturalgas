@@ -3,7 +3,7 @@
 
 Replication files for Boeck, M. and Zörner, T. O. (2024)
 =======
-Replication files for Boeck, M. and Zörner, T. O. (2024) *Natural Gas Prices, Inflation Expectations, and the Pass-Through to Euro Area Inflation*, Energy Economics, forthcoming.
+Replication files for Boeck, M. and Zörner, T. O. (2024) *Natural Gas Prices, Inflation Expectations, and the Pass-Through to Euro Area Inflation*.
 
 In order to reproduce all the graphics visible in the paper, just run **main.r** in the *scripts* folder. Estimations are based on 25.000 MCMC draws where the first 15.000 are discarded. Hence, the script takes a considerable amount of time to run through. The number of saved draws (*draws*) and discarded draws (*burnins*) can be adapted by the user. The script then reproduces the following
 
