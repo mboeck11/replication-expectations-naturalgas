@@ -1,4 +1,4 @@
-# replication-expectations_natural_gas
+# Replication files for Boeck, M. and Zörner, T. O. (2024) *Natural Gas Prices, Inflation Expectations, and the Pass-Through to Euro Area Inflation*.
 
 
 Replication files for Boeck, M. and Zörner, T. O. (2024)
@@ -22,4 +22,4 @@ In order to reproduce all the graphics visible in the paper, just run **main.r**
 
 **Abstract** This paper examines the recent increase in natural gas prices, the sensitivity of inflation expectations, and the pass-through to inflation. Using a semi-structural vector autoregression, we identify a natural gas price shock in the euro area with a combination of sign and zero restrictions. We rely on market-based measures of inflation expectations. The results show that shocks to the real price of natural gas affect both inflation and inflation expectations. To investigate the relative importance of the pass-through of inflation expectations to inflation, we conduct a structural scenario analysis in which inflation expectations are insensitive to movements in the real price of natural gas. The results indicate the presence of strong second-round effects via expectations. Our analysis provides guidance for policymakers to better understand the potential trade-offs of different policy responses to natural gas price shocks, particularly with respect to the potential for a de-anchoring of inflation expectations.
 
-**Links** [(Latest Version Sept 2024)](https://mboeck11.github.io/papers/BZ2024WP.pdf)
+**Links:** [(Latest Version Sept 2024)](https://mboeck11.github.io/papers/BZ2024WP.pdf)
