@@ -1,12 +1,4 @@
 # general stuff
-plag            = 12
-draws           = 25000
-burnin          = 10000
-thin            = 2
-SV              = FALSE
-nhor            = 61
-hor             = 61
-scale           = 0.1
 save_est        = TRUE
 save_plot       = TRUE
 
@@ -119,7 +111,7 @@ if(file.exists(dirName_est)){
   load(dirName_est)
 }else{
   set.seed(471)
-  args = list(draws = draws, burnin = burnin, thin=thin, cons = TRUE, SV=SV, Ex=Exraw, kappa=kappa)
+  args = list(draws = draws, burnin = burnin, thin=thin, cons = TRUE, SV=FALSE, Ex=Exraw, kappa=kappa)
   run  = bvarsv_ng(Yraw, plag, args)
 
   # save
@@ -156,14 +148,9 @@ if(file.exists(dirName_irf_sign)){
     if(max(abs(Re(eigen(compMat)$values))) > 1)
       next
     
-    if(run$args$SV){
-      SIGMA <- apply(run$SIGMA[irep,,,], c(2,3), median)
-    }else{
-      SIGMA <- run$SIGMA[irep,,]
-    }
-    
-    A0 <- t(chol(SIGMA))
-    irf.restr       = matrix(NA, N.restr, n)
+    SIGMA = run$SIGMA[irep,,]
+    A0    = t(chol(SIGMA))
+    irf.restr       = matrix(NA_real_, N.restr, n)
     irf.restr[1:n,] = A0
     compMati        = compMat
     if(H.restr > 1){
@@ -235,7 +222,6 @@ if(file.exists(dirName_irf_sign)){
     if(icounter == MaxTries) next
     
     shock <- A0 %*% Q
-    #shock <- shock%*%diag(1/diag(shock))*scale
     impresp1         = array(NA_real_, c(n, n, nhor))
     impresp1[,1:n,1] = shock
     compMati         = compMat
@@ -294,7 +280,7 @@ for(nn in 1:o){
           col = col.68, border=NA)
   lines(irf_sign[4,nn,shock_idx,1:hor], col="black", lwd=lwd.main, lty=lty.main)
   abline(h=0, col="black", lwd=2)
-  axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2)
+  axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2)
   axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
   box(lwd=2,bty="l")
 }
@@ -315,7 +301,7 @@ for(nn in 1:n){
             col = col.68, border=NA)
     abline(h=0, col="black", lwd=lwd.zero)
     lines(irf_sign[4,nn,shock_ss,1:hor], col="black", lwd=lwd.main, lty=lty.main)
-    axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2)
+    axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2)
     axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
     box(lwd=2, bty="l")
   }
@@ -383,7 +369,7 @@ for(nn in 1:o){
   lines(irf_sign[4,nn,shock_idx,1:hor], col="black", lwd=lwd.main, lty=lty.main)
   lines(irfssa_sign[4,nn,shock_idx,1:hor], col=col.cf, lwd=lwd.cf, lty=lty.cf)
   abline(h=0, col="black", lwd=2)
-  axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2)
+  axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2)
   axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
   box(lwd=2,bty="l")
 }
@@ -415,7 +401,7 @@ if(!is.null(plot_sign)){
     lines(irf_sign[4,nn,shock_idx,1:hor], col="black", lwd=lwd.main, lty=lty.main)
     lines(irfssa_sign[4,nn,shock_idx,1:hor], col=col.cf, lwd=lwd.cf, lty=lty.cf)
     abline(h=0, col="black", lwd=2)
-    axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2)
+    axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2)
     axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
     box(lwd=2,bty="l")
   }
@@ -437,7 +423,7 @@ if(!is.null(plot_stats)){
           col = col.68, border=NA)
   abline(h=0, col="black", lwd=lwd.zero)
   lines(modestIntStat_sign[4,restrVar,1,], col="black", lwd=lwd.main, lty=lty.main)
-  axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2,cex.axis=cex.axis.4var)
+  axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2,cex.axis=cex.axis.4var)
   axis(2, at=seq(-2,2,by=1), lwd=2, font=2, las=2, cex.axis=cex.axis.4var, las=2)
   box(lwd=2)
   
@@ -483,7 +469,7 @@ if(!is.null(plot_all)){
       polygon(c(1:hor,rev(1:hor)), c(irf_sign[3,nn,shock_ss,1:hor],rev(irf_sign[5,nn,shock_ss,1:hor])), col = col.68, border=NA)
       abline(h=0, col="black", lwd=lwd.zero)
       lines(irf_sign[4,nn,shock_ss,1:hor], col="black", lwd=lwd.main, lty=lty.main)
-      axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2)
+      axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2)
       axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
       box(lwd=2, bty="l")
       }
@@ -506,7 +492,7 @@ if(!is.null(plot_fe)){
           col = col.68, border=NA)
   abline(h=0, col="black", lwd=lwd.zero)
   lines(fe_sign[4,1:hor], col="black", lwd=lwd.main, lty=lty.main)
-  axis(1, at=seq(1,nhor,by=12), labels=seq(0,nhor,by=12),lwd=2,font=2,cex.axis=cex.axis.4var)
+  axis(1, at=seq(1,hor,by=12), labels=seq(0,hor,by=12),lwd=2,font=2,cex.axis=cex.axis.4var)
   axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1), "pp"), cex.axis=cex.axis.4var)
   box(lwd=2,bty="l")
   dev.off()

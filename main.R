@@ -6,44 +6,25 @@
 # Maximilian Boeck                                                #
 #                                                                 #
 # Created:   20/09/2024                                           #
-# Last Edit: 21/09/2024                                           #
+# Last Edit: 23/09/2024                                           #
 ###################################################################
 rm(list=ls())
 
-# specify settings:
-#           - baseline:                    EA data monthly    | Figure 4, 5, D1a, D4
-#           - extension-spf-1y/5y:         EA data quarterly  | Figure 6a, 6b, D2b
-#           - extension-oil-1y/5y:         EA data monthly    | Figure 7a, 7b
-#           - extension-us-1y/5y:          US data monthly    | Figure 8a, 8b
-#           - rob-us-core:                 US data monthly    | Figure D3a
-#           - rob-us-oil:                  US data monthly    | Figure D3b
-
-# extension: adding one variable at a time
-#           - extension-core
-#           - extension-energy
-
-# alternative settings:
-#           - baseline-alternative-sign1:      idiosyncratic inflation expectations shock with positive on impact response 
-#                                              on output and inflation
-#           - baseline-alternative-sign2:      idiosyncratic inflation expectations shock with positive on impact response
-#                                              on output
-# referee requests:
-#           - baseline-alternative-sign3:      impose negative sign on real GDP growth
-#           - baseline-alternative-sign4:      relax assumption that monetary authority reacts immediately to supply, demand, and natural gas price shock
-#           - baseline-alternative-two_shocks: only identify real natural gas price shock and idiosyncratic inflation expectations shock
-#           - baseline-alternative-one_shock   only identify real natural gas price shock and use combined shocks to construct counterfactual
-#           - robustness-core                  exchange inflation with core inflation
-#           - robustness-ip                    exchange rgdp with IP
-#           - robustness-stir                  exchange shadow rate with STIR
-#           - robustness-lags-six              six lags
-#           - robustness-ttf-growth            real natural gas price in growth rates
-#           - robustness-sample1               start after Great Financial Crisis in 2010M1
-#           - robustness-sample2               start in 2012M1 (gas more independent from oil contracts)
-
-
+# CAUTION: run-time of this program can be quite extensive on a standard computer
+# CAUTION: this program saves estimations on your directory (> 3 Gb)
+# in case you want to delete the estimations afterward, delete the content of the following
+# directory: /results/rda
 
 # load packages
-library(readxl);library(stringr);library(abind);library(Hmisc);library(stringr);library(MASS);library(Matrix);library(mvtnorm);library(tseries)
+library(readxl)
+library(stringr)
+library(abind)
+library(Hmisc)
+library(stringr)
+library(MASS)
+library(Matrix)
+library(mvtnorm)
+library(tseries)
 
 # load functions
 funs <- list.files("./codes/functions_misc", full.name=TRUE)
@@ -54,12 +35,26 @@ funs <- list.files("./codes/functions_varsv", full.name=TRUE)
 for(fun in funs) if(grepl("R$",fun)) source(fun)
 rm(fun, funs)
 
+# VAR settings
+plag   = 12       # number of lags in the VAR
+nhor   = 61       # compute impulse responses up to this horizon
+hor    = 61       # impulse response horizon in plots (has to be at least <= nhor)
+
+# MCMC settings
+draws  = 25000    # number of saved draws
+burnin = 10000    # number of burnin draws
+thin   = 2        # thinning factor: save every thin'd draw
+
 # Figure 1 / Figure 2
 source("./codes/motivationplot.R")
 
 # Figure 3 / Figure 4 / Figure D1a / Figure D3
-setting  = "baseline"
+setting = "baseline"
 source("./codes/var_analysis.R")
+
+# Figure 5
+setting = "baseline-ils"
+source("./codes/var_analysis_ILS.R")
 
 # Figure 6a / Figure 6b / Figure D1b
 setting = "extension-spf-1y"
@@ -79,4 +74,13 @@ source("./codes/var_analysis.R")
 setting = "extension-us-5y"
 source("./codes/var_analysis.R")
 
-# Figure D2
+# Figure D2a / Figure D2b
+rob_settings = paste0("robustness-",c("core","ip","lags-six","ttf-growth"))
+for(setting in rob_settings){
+  source("./codes/var_analysis.R")
+}
+ident_settings = paste0("baseline-alternative-",c("sign1","sign2","two_shocks","one_shock"))
+for(setting in ident_settings){
+  source("./codes/var_analysis.R")
+}
+source("./codes/var_analysis_plot_robustness.R")
