@@ -1,9 +1,5 @@
-# general stuff
-save_est        = TRUE
-save_plot       = TRUE
-
-# plotting
-plot_sign = plot_stats = plot_fe = plot_all = plot_ils = NULL
+# different types of plots
+plot_sign = plot_stats = plot_fe = plot_all = NULL
 
 # specifications
 vars          = c("Gas_Worldbank_real", "rgdp_monthly", "SHADOWSTIR", "CPI", "ILS.1Y")
@@ -115,7 +111,7 @@ if(file.exists(dirName_est)){
   run  = bvarsv_ng(Yraw, plag, args)
 
   # save
-  if(save_est) save(run, file=dirName_est)
+  save(run, file=dirName_est)
 }
 
 thindraws  = run$args$thindraws
@@ -261,12 +257,12 @@ if(file.exists(dirName_irf_sign)){
   }
   fe_sign = apply(fe_sign_store, 2, quantile, c(.05, .10, .16, .50, .84, .90, .95), na.rm=TRUE)
   
-  if(save_est) save(irf_sign, Q_store, fe_sign, file=dirName_irf_sign)
+  save(irf_sign, Q_store, fe_sign, file=dirName_irf_sign)
   rm(irf_sign_store, add_sign_store, add_sign)
 }
 
 # check responses
-if(save_plot) pdf(file=paste0(filename_p,"irf_sign.pdf"), height=6, width=10)
+pdf(file=paste0(filename_p,"irf_sign.pdf"), height=6, width=10)
 par(mfrow=c(2,3),mar=c(2,3.5,1.5,0.2))
 for(nn in 1:o){
   ylim1=range(irf_sign[,nn,shock_idx,1:hor])
@@ -284,9 +280,9 @@ for(nn in 1:o){
   axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
   box(lwd=2,bty="l")
 }
-if(save_plot) dev.off()
+dev.off()
 
-if(save_plot) pdf(file=paste0(filename_p,"irf_sign_all.pdf"), height=6, width=10)
+pdf(file=paste0(filename_p,"irf_sign_all.pdf"), height=6, width=10)
 par(mfrow=c(n,n),mar=c(3.2,3.5,2.2,2.2))
 for(nn in 1:n){
   for(shock_ss in 1:5){
@@ -306,7 +302,7 @@ for(nn in 1:n){
     box(lwd=2, bty="l")
   }
 }
-if(save_plot) dev.off()
+dev.off()
 
 #-----------------------------------------------------------------------------------------
 # Counterfactuals (ADPRR 2021 JME)
@@ -349,12 +345,12 @@ if(file.exists(dirName_ssa_sign)){
   
   irfssa_sign = abind(irfssa_sign, addssa_sign, along=2)
   
-  if(save_est) save(irfssa_sign, div_sign_store, modestIntStat_sign, file=dirName_ssa_sign)
+  save(irfssa_sign, div_sign_store, modestIntStat_sign, file=dirName_ssa_sign)
   rm(irfssa_sign_store, addssa_sign_store, addssa_sign)
 }
 
 # check responses
-if(save_plot) pdf(file=paste0(filename_p,"irf_sign_ssa.pdf"), height=6, width=10)
+pdf(file=paste0(filename_p,"irf_sign_ssa.pdf"), height=6, width=10)
 par(mfrow=c(2,3),mar=c(2,3.5,1.5,0.2))
 for(nn in 1:o){
   ylim1=range(irf_sign[,nn,shock_idx,1:hor])
@@ -373,7 +369,7 @@ for(nn in 1:o){
   axis(2, lwd=2, font=2, las=2, at=pretty(range(ylim1)), labels=paste0(pretty(ylim1),varAxis_full[nn]))
   box(lwd=2,bty="l")
 }
-if(save_plot) dev.off()
+dev.off()
 
 #-----------------------------------------------------------------------------------------
 # PLOTS for PAPER

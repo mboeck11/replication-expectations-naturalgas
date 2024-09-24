@@ -1,10 +1,3 @@
-# general stuff
-save_est      = TRUE
-save_plot     = TRUE
-
-# plotting
-plot_sign = plot_stats = plot_fe = plot_all = NULL
-
 # specifications
 vars          = c("Gas_Worldbank_real", "rgdp_monthly", "SHADOWSTIR", "CPI", "ILS.")
 varNames      = c("Real Gas Price", "Real GDP", "Interest Rate", "Inflation", "Inflation Expectations ")
@@ -74,14 +67,17 @@ Zmat[[5]] <- matrix(0, 4, n*H.restr); Zmat[[5]][1,1] <- 1; Zmat[[5]][2,2] <- 1; 
 source("./codes/setup/00_PlotSpec.R")
 source("./codes/setup/specify_var_settings.R")
 
-# directory for results
-filename_p = paste0("./codes/results_ng/",ctry,"_",setting,"_")
+# load data
+ctry = "EA-m"
+data = read_xlsx(path="./codes/BZ2_data.xlsx", sheet=ctry)
+if(ctry == "EA-m" || ctry == "US-m") data = ts(data[,-1], start=c(2004,4), frequency=12)
+if(ctry == "EA-q") data = ts(data[,-1], start=c(2004,2), frequency=4)
 
 #-------------------------------------------------------------------------------
 # container for differences
-diffmax_store = array(NA_real_, c(draws, ilsN, o, 2),       dimnames=list(NULL,       ilsNames, varNames_full, c("CF","ADPRR")))
-diff_store    = array(NA_real_, c(draws, nhor, ilsN, o, 2), dimnames=list(NULL, NULL, ilsNames, varNames_full, c("CF","ADPRR")))
-maxind_store  = array(NA_real_, c(ilsN, o, 2),              dimnames=list(            ilsNames, varNames_full, c("CF","ADPRR")))
+diffmax_store = array(NA_real_, c(draws, ilsN, o),       dimnames=list(NULL,       ilsNames, varNames_full))
+diff_store    = array(NA_real_, c(draws, nhor, ilsN, o), dimnames=list(NULL, NULL, ilsNames, varNames_full))
+maxind_store  = array(NA_real_, c(ilsN, o),              dimnames=list(            ilsNames, varNames_full))
 
 #-------------------------------------------------------------------------------
 # start big-for-loop
@@ -137,7 +133,7 @@ for(ilshor in 1:ilsN){
     run  = bvarsv_ng(Yraw, plag, args)
     
     # save
-    if(save_est) save(run, file=dirName_est)
+    save(run, file=dirName_est)
   }
   
   thindraws  = run$args$thindraws
@@ -275,7 +271,7 @@ for(ilshor in 1:ilsN){
     add_sign       = apply(add_sign_store,  c(2,3,4), quantile, emp_percs, na.rm=TRUE)
     irf_sign       = abind(irf_sign,  add_sign,  along=2)
     
-    if(save_est) save(irf_sign, Q_store, file=dirName_irf_sign)
+    save(irf_sign, Q_store, file=dirName_irf_sign)
     rm(add_sign_store, add_sign)
   }
   
@@ -322,7 +318,7 @@ for(ilshor in 1:ilsN){
     irfssa_sign_store = abind(irfssa_sign_store, addssa_sign_store, along=2)
     irfssa_sign       = abind(irfssa_sign,       addssa_sign,       along=2)
     
-    if(save_est) save(irfssa_sign, div_sign_store, modestIntStat_sign, file=dirName_ssa_sign)
+    save(irfssa_sign, div_sign_store, modestIntStat_sign, file=dirName_ssa_sign)
     rm(addssa_sign_store, addssa_sign)
   }
   
@@ -349,21 +345,20 @@ for(ilshor in 1:ilsN){
       maxind.i_store[oo] = maxind_ssa
     }
     
-    if(save_est) save(diffmax.i_store, diff.i_store, maxind.i_store, file=dirName_diff)
+    save(diffmax.i_store, diff.i_store, maxind.i_store, file=dirName_diff)
   }
   #-----------------------------------------------------------------------------------------
   # save
   #-----------------------------------------------------------------------------------------
-  diffmax_store[,ilshor,,] = diffmax.i_store
-  maxind_store[ilshor,,]   = maxind.i_store
-  diff_store[,,ilshor,,]   = diff.i_store
+  diffmax_store[,ilshor,] = diffmax.i_store
+  maxind_store[ilshor,]   = maxind.i_store
+  diff_store[,,ilshor,]   = diff.i_store
 }
 
 diffmax_post = apply(diffmax_store, c(2,3), quantile, c(.16, .50, .86), na.rm=TRUE)
 diff_post    = apply(diff_store, c(2,3,4), quantile, c(.16, .50, .86), na.rm=TRUE)
 
-# check responses
-pdf(paste0(filename_p,"shock_ILSCurve_max.pdf"), width=14, height=6)
+pdf("./figure5.pdf", width=10, height=6)
 par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
 ylim1 = range(c(0,diffmax_post[,,"Inflation"]))
 plot(x = 1:ilsN, y = diffmax_post[2,,"Inflation"],
@@ -381,117 +376,5 @@ axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
 axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1)," pp"),
      las=2, font=2, lwd=2, cex.axis=1.2)
 dev.off()
-
-# check responses
-if(save_plot) pdf(file=paste0(filename_p,"shock_ILSCurve_6months.pdf"), width=14, height=6)
-month <- 7
-inf_agg <- "Inflation"
-par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
-ylim1 = range(c(0,diff_post[,month,,inf_agg]))
-plot(x = 1:ilsN, y = diff_post[2,month,,inf_agg],
-     pch = 16, type = "p", axes = FALSE, ylab="", xlab="",
-     col = col.ILS, cex=1.2, ylim=ylim1)
-mtext("Inflation Expectation Horizon", side=1, line=2.5, font=2, cex=1.2)
-abline(h=pretty(ylim1), col="grey60")
-points(x = 1:ilsN, y = diff_post[2,month,,inf_agg], pch=16, type="p", col=col.ILS, cex=1.4)
-arrows(x0=1:ilsN, y0=diff_post[1,month,,inf_agg], 
-       x1=1:ilsN, y1=diff_post[3,month,,inf_agg], 
-       col=col.ILS,
-       length=0.05, angle=90, code=3, lwd=1.5)
-box(lwd=2, bty="l")
-axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
-axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1)," pp"),
-     las=2, font=2, lwd=2, cex.axis=1.2)
-if(save_plot) dev.off()
-
-# check responses
-if(save_plot) pdf(file=paste0(filename_p,"shock_ILSCurve_12months.pdf"), width=14, height=6)
-month <- 13
-inf_agg <- "Inflation"
-par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
-ylim1 = range(c(0,diff_post[,month,,inf_agg]))
-plot(x = 1:ilsN, y = diff_post[2,month,,inf_agg],
-     pch = 16, type = "p", axes = FALSE, ylab="", xlab="",
-     col = col.ILS, cex=1.2, ylim=ylim1)
-mtext("Inflation Expectation Horizon", side=1, line=2.5, font=2, cex=1.2)
-abline(h=pretty(ylim1), col="grey60")
-points(x = 1:ilsN, y = diff_post[2,month,,inf_agg], pch=16, type="p", col=col.ILS, cex=1.4)
-arrows(x0=1:ilsN, y0=diff_post[1,month,,inf_agg], 
-       x1=1:ilsN, y1=diff_post[3,month,,inf_agg], 
-       col=col.ILS,
-       length=0.05, angle=90, code=3, lwd=1.5)
-box(lwd=2, bty="l")
-axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
-axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1)," pp"),
-     las=2, font=2, lwd=2, cex.axis=1.2)
-if(save_plot) dev.off()
-
-# check responses
-if(save_plot) pdf(file=paste0(filename_p,"shock_ILSCurve_18months.pdf"), width=14, height=6)
-month <- 19
-inf_agg <- "Inflation"
-par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
-ylim1 = range(c(0,diff_post[,month,,inf_agg]))
-plot(x = 1:ilsN, y = diff_post[2,month,,inf_agg],
-     pch = 16, type = "p", axes = FALSE, ylab="", xlab="",
-     col = col.ILS, cex=1.2, ylim=ylim1)
-mtext("Inflation Expectation Horizon", side=1, line=2.5, font=2, cex=1.2)
-abline(h=pretty(ylim1), col="grey60")
-points(x = 1:ilsN, y = diff_post[2,month,,inf_agg], pch=16, type="p", col=col.ILS, cex=1.4)
-arrows(x0=1:ilsN, y0=diff_post[1,month,,inf_agg], 
-       x1=1:ilsN, y1=diff_post[3,month,,inf_agg], 
-       col=col.ILS,
-       length=0.05, angle=90, code=3, lwd=1.5)
-box(lwd=2, bty="l")
-axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
-axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1)," pp"),
-     las=2, font=2, lwd=2, cex.axis=1.2)
-if(save_plot) dev.off()
-
-# check responses
-if(save_plot) pdf(file=paste0(filename_p,"shock_ILSCurve_24months.pdf"), width=14, height=6)
-month <- 25
-par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
-ylim1 = range(c(0,diff_post[,month,,inf_agg]))
-plot(x = 1:ilsN, y = diff_post[2,month,,inf_agg],
-     pch = 16, type = "p", axes = FALSE, ylab="", xlab="",
-     col = col.ILS, cex=1.2, ylim=ylim1)
-mtext("Inflation Expectation Horizon", side=1, line=2.5, font=2, cex=1.2)
-abline(h=pretty(ylim1), col="grey60")
-points(x = 1:ilsN, y = diff_post[2,month,,inf_agg], pch=16, type="p", col=col.ILS, cex=1.4)
-arrows(x0=1:ilsN, y0=diff_post[1,month,,inf_agg], 
-       x1=1:ilsN, y1=diff_post[3,month,,inf_agg], 
-       col=col.ILS,
-       length=0.05, angle=90, code=3, lwd=1.5)
-box(lwd=2, bty="l")
-axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
-axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1), " pp"),
-     las=2, font=2, lwd=2, cex.axis=1.2)
-if(save_plot) dev.off()
-
-#-----------------------------------------------------------------------------------------
-# PLOTS for PAPER
-#-----------------------------------------------------------------------------------------
-
-if(!is.null(plot_ils)){
-  pdf(paste0(filename_o,plot_ils,".pdf"), width=10, height=6)
-  par(mfrow=c(1,1),mar=c(4.1,4.5,2.2,2.2))
-  ylim1 = range(c(0,diffmax_post[,,"Inflation"]))
-  plot(x = 1:ilsN, y = diffmax_post[2,,"Inflation"],
-       pch = 16, type = "p", axes = FALSE, ylab="", xlab="",
-       col = col.ILS, cex=1.2, ylim=ylim1)
-  mtext("Inflation Expectation Horizon", side=1, line=2.5, font=2, cex=1.2)
-  abline(h=pretty(ylim1), col="grey60")
-  points(x = 1:ilsN, y = diffmax_post[2,,"Inflation"], pch=16, type="p", col=col.ILS, cex=1.4)
-  arrows(x0=1:ilsN, y0=diffmax_post[1,,"Inflation"], 
-         x1=1:ilsN, y1=diffmax_post[3,,"Inflation"], 
-         col=col.ILS,
-         length=0.05, angle=90, code=3, lwd=1.5)
-  box(lwd=2, bty="l")
-  axis(1, at=1:ilsN, labels=ilsNames, font=2, cex.axis=1.1, lwd=2)
-  axis(2, at=pretty(ylim1), labels=paste0(pretty(ylim1)," pp"),
-       las=2, font=2, lwd=2, cex.axis=1.2)
-  dev.off()
-}
 
 
